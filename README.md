@@ -1,5 +1,9 @@
 # VulnSDK2
 
+[![](https://jitpack.io/v/BenNoyman/Vuln_SDK.svg)](https://jitpack.io/#BenNoyman/Vuln_SDK)
+[![API](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=26)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 A powerful Android SDK for vulnerability scanning and security monitoring. VulnSDK2 provides automated vulnerability detection, network monitoring, and security analysis capabilities for Android applications with seamless integration to the VulnPlatform backend.
 
 ## 🚀 Features
