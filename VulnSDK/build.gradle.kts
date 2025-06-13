@@ -27,6 +27,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 dependencies {
@@ -49,12 +55,38 @@ dependencies {
 afterEvaluate {
     publishing {
         publications {
-            create<MavenPublication>("maven") {
+            create<MavenPublication>("release") {
                 from(components["release"])
                 
                 groupId = "com.github.BenNoyman"
-                artifactId = "VulnSDK"
+                artifactId = "Vuln_SDK"
                 version = "1.0.0"
+                
+                pom {
+                    name.set("VulnSDK2")
+                    description.set("A powerful Android SDK for vulnerability scanning and security monitoring")
+                    url.set("https://github.com/BenNoyman/Vuln_SDK")
+                    
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id.set("BenNoyman")
+                            name.set("Ben Noyman")
+                        }
+                    }
+                    
+                    scm {
+                        connection.set("scm:git:git://github.com/BenNoyman/Vuln_SDK.git")
+                        developerConnection.set("scm:git:ssh://github.com:BenNoyman/Vuln_SDK.git")
+                        url.set("https://github.com/BenNoyman/Vuln_SDK")
+                    }
+                }
             }
         }
     }
