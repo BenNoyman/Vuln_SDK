@@ -6,6 +6,14 @@
 
 A powerful Android SDK for vulnerability scanning and security monitoring. VulnSDK2 provides automated vulnerability detection, network monitoring, and security analysis capabilities for Android applications with seamless integration to the VulnPlatform backend.
 
+## ✅ **INTEGRATION STATUS: VERIFIED & WORKING**
+
+✅ Authentication integration tested and working  
+✅ Code scanning functionality verified  
+✅ Network communication established  
+✅ CORS and security configurations validated  
+✅ Complete SDK-Platform integration confirmed  
+
 ## 🚀 Features
 
 * **Vulnerability Scanning**: Automated detection of common security vulnerabilities
@@ -45,23 +53,90 @@ dependencies {
 }
 ```
 
+### Step 3: ⚠️ **CRITICAL: Configure Android Permissions & Network Security**
+
+#### Add Required Permissions
+Add these permissions to your `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+#### Enable Cleartext Traffic (for HTTP connections)
+Add these attributes to your `<application>` tag in `AndroidManifest.xml`:
+
+```xml
+<application
+    android:usesCleartextTraffic="true"
+    android:networkSecurityConfig="@xml/network_security_config"
+    ... >
+```
+
+#### Create Network Security Configuration
+Create `app/src/main/res/xml/network_security_config.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
+```
+
 ## 🛠️ Setup
+
+### VulnPlatform Backend Prerequisites
+
+Before using the SDK, ensure your VulnPlatform backend is running:
+
+```bash
+# Start VulnPlatform (in VulnPlatform directory)
+docker-compose up -d
+
+# Verify it's running
+curl http://localhost:5000/api/auth/register
+```
+
+The SDK is pre-configured to connect to:
+- **Emulator**: `http://10.0.2.2:5000/api/` (recommended for development)
+- **Physical Device**: Update `ApiClient.BASE_URL` to your computer's IP
 
 ### Basic Initialization
 
-Initialize the SDK in your `Application` class or `MainActivity`:
+Initialize the SDK in your `Activity`:
 
 ```java
 import com.example.vulnsdk.controller.VulnerabilitiesController;
+import com.example.vulnsdk.model.AuthResponse;
 
-public class MyApplication extends Application {
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+
     @Override
-    public void onCreate() {
-        super.onCreate();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         
         // Initialize VulnSDK2
         VulnerabilitiesController controller = new VulnerabilitiesController();
-        controller.initialize(this, "https://your-vulnplatform.com/api/", "your-access-token");
+        
+        // Register or login
+        controller.register("username", "password123", new VulnerabilitiesController.Callback<AuthResponse>() {
+            @Override
+            public void onSuccess(AuthResponse response) {
+                Log.d(TAG, "Registration successful! Token: " + response.getToken());
+                // Token will be 4 characters (e.g., "M6VB")
+            }
+            
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Registration failed: " + error);
+            }
+        });
     }
 }
 ```
@@ -239,28 +314,81 @@ Your VulnPlatform backend should be running and accessible. The SDK communicates
 
 ## 🐛 Troubleshooting
 
-### SDK Not Connecting?
+### ⚠️ **VERIFIED SOLUTIONS (2025-06-13)**
 
-```java
-// Enable debug logging
-VulnerabilitiesController controller = new VulnerabilitiesController();
-controller.setDebugMode(true);
+The following issues have been identified and resolved:
+
+### 1. Network Connection Issues ✅ FIXED
+
+**Problem**: SDK can't connect to VulnPlatform  
+**Solution**: Ensure all Android network configurations are applied:
+
+```xml
+<!-- AndroidManifest.xml -->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+<application
+    android:usesCleartextTraffic="true"
+    android:networkSecurityConfig="@xml/network_security_config"
+    ... >
 ```
 
-### Authentication Issues?
+### 2. CORS Errors ✅ FIXED
 
+**Problem**: Cross-origin requests blocked  
+**Solution**: VulnPlatform backend now allows SDK connections. Ensure you're using the latest version.
+
+### 3. Authentication Token Issues ✅ WORKING
+
+**Verified**: 4-character tokens work correctly (e.g., "M6VB")
 ```java
-// Verify token format (should be 4 characters)
-String token = "AB12"; // Example valid token
-controller.setAccessToken(token);
+// Example successful registration
+controller.register("username", "password123", callback);
+// Returns: access_token: "M6VB"
 ```
 
-### Network Issues?
+### 4. Development Environment Setup
 
+**Important**: Use Android Emulator (not physical device) for development:
+- SDK configured for: `http://10.0.2.2:5000/api/`
+- This maps to `localhost:5000` on your development machine
+
+**For Physical Device**: Update `ApiClient.BASE_URL` to your computer's IP:
 ```java
-// Check network timeouts
-controller.setConnectionTimeout(60); // Increase timeout
-controller.setReadTimeout(60);
+// In ApiClient.java, change:
+private static final String BASE_URL = "http://YOUR_COMPUTER_IP:5000/api/";
+```
+
+### 5. Backend Connection Verification
+
+**Before running your app**, verify VulnPlatform is running:
+```bash
+# In VulnPlatform directory
+docker-compose up -d
+docker-compose ps  # Should show all containers as "Up"
+
+# Test endpoint
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","password":"123456"}'
+```
+
+### 6. Debug Logging
+
+Enable HTTP logging to see network requests:
+```java
+// The SDK automatically includes HTTP logging
+// Check Android Logcat for "okhttp.OkHttpClient" messages
+```
+
+**Expected Successful Log**:
+```
+I/okhttp.OkHttpClient: <-- 201 CREATED http://10.0.2.2:5000/api/auth/register (96ms)
+I/okhttp.OkHttpClient: {
+I/okhttp.OkHttpClient:   "access_token": "M6VB",
+I/okhttp.OkHttpClient:   "message": "User registered successfully"
+I/okhttp.OkHttpClient: }
 ```
 
 ## 📋 Requirements
